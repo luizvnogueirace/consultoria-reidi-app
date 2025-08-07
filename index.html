@@ -18,6 +18,7 @@
         .text-golden-yellow { color: #B9880B; }
         .border-golden-yellow { border-color: #B9880B; }
         .accent-golden-yellow { accent-color: #B9880B; }
+        .text-title-gray { color: #919395; } /* Nova cor para títulos */
         .btn-primary {
             background-color: #B9880B;
             color: #f0f0f0;
@@ -92,7 +93,8 @@
     <div x-show="currentView === 'login'" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md mx-auto">
             <div class="card text-center">
-                <h1 class="text-3xl font-bold text-golden-yellow mb-2 pt-8">REIDI SMAV</h1>
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="mx-auto h-24 w-auto mb-4">
+                <h1 class="text-3xl font-bold text-title-gray mb-2">REIDI SMAV</h1>
                 <p class="text-gray-400 mb-8">Acesso à plataforma de consultoria</p>
 
                 <!-- Etapa Inicial: Seleção de Perfil -->
@@ -132,7 +134,10 @@
     <!-- Painel do Consultor -->
     <div x-show="currentView === 'consultorDashboard'">
         <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-golden-yellow">Painel do Consultor</h1>
+            <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="h-8 w-auto">
+                <h1 class="text-2xl font-bold text-title-gray">Painel do Consultor</h1>
+            </div>
             <div>
                 <span class="mr-4">Olá, Consultor</span>
                 <button @click="logout()" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-sign-out-alt"></i> Sair</button>
@@ -184,7 +189,10 @@
     <!-- Tela de Adicionar/Editar Cliente (Consultor) -->
     <div x-show="currentView === 'addClient' || currentView === 'editClientView'">
         <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-golden-yellow" x-text="currentView === 'addClient' ? 'Cadastrar Novo Cliente' : 'Editar Cliente'"></h1>
+            <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="h-8 w-auto">
+                <h1 class="text-2xl font-bold text-title-gray" x-text="currentView === 'addClient' ? 'Cadastrar Novo Cliente' : 'Editar Cliente'"></h1>
+            </div>
             <button @click="currentView = 'consultorDashboard'" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar</button>
         </header>
         <main class="p-4 sm:p-8 max-w-4xl mx-auto">
@@ -234,9 +242,12 @@
     <!-- Visão do Consultor - Painel do Cliente -->
     <div x-show="currentView === 'consultorClientView'" x-if="selectedClient">
         <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-golden-yellow" x-text="selectedClient.name"></h1>
-                <p class="text-sm text-gray-400" x-text="`ID: ${selectedClient.id}`"></p>
+            <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="h-10 w-auto">
+                <div>
+                    <h1 class="text-2xl font-bold text-title-gray" x-text="selectedClient.name"></h1>
+                    <p class="text-sm text-gray-400" x-text="`ID: ${selectedClient.id}`"></p>
+                </div>
             </div>
             <button @click="currentView = 'consultorDashboard'; selectedClient = null" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar ao Painel</button>
         </header>
@@ -324,7 +335,10 @@
     <!-- Visão do Consultor - Edição do Formulário -->
     <div x-show="currentView === 'consultorFormView'" x-if="selectedProject">
         <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
-             <h1 class="text-2xl font-bold text-golden-yellow" x-text="`Editando Formulário: ${selectedProject.name}`"></h1>
+             <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="h-8 w-auto">
+                <h1 class="text-2xl font-bold text-title-gray" x-text="`Editando Formulário: ${selectedProject.name}`"></h1>
+            </div>
             <button @click="currentView = 'consultorClientView'" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar</button>
         </header>
         <main class="p-4 sm:p-8 max-w-5xl mx-auto">
@@ -418,9 +432,12 @@
     <!-- Painel do Cliente -->
     <div x-show="currentView === 'clientDashboard'" x-if="loggedInClient">
         <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-golden-yellow" x-text="loggedInClient.name"></h1>
-                <p class="text-sm text-gray-400" x-text="`ID: ${loggedInClient.id}`"></p>
+            <div class="flex items-center gap-4">
+                <img src="https://i.ibb.co/JRL355DS/logo-simbolo.png" alt="logo-simbolo" class="h-10 w-auto">
+                <div>
+                    <h1 class="text-2xl font-bold text-title-gray" x-text="loggedInClient.name"></h1>
+                    <p class="text-sm text-gray-400" x-text="`ID: ${loggedInClient.id}`"></p>
+                </div>
             </div>
             <button @click="logout()" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-sign-out-alt"></i> Sair</button>
         </header>
