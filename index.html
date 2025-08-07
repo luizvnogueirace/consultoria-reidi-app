@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultoria REIDI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+        .bg-dark-gray { background-color: #2d2d2d; }
+        .bg-darker-gray { background-color: #1f1f1f; }
+        .text-golden-yellow { color: #ffc700; }
+        .border-golden-yellow { border-color: #ffc700; }
+        .accent-golden-yellow { accent-color: #ffc700; }
+        .btn-primary {
+            background-color: #ffc700;
+            color: #1a1a1a;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #e6b300;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: #ffc700;
+            border: 2px solid #ffc700;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #ffc700;
+            color: #1a1a1a;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #444;
+        }
+        .input-field {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #f0f0f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #ffc700;
+            box-shadow: 0 0 0 2px rgba(255, 199, 0, 0.5);
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pendente { background-color: #6b7280; color: #fff; }
+        .status-enviado { background-color: #3b82f6; color: #fff; }
+        .status-aprovado { background-color: #22c55e; color: #fff; }
+        .status-rejeitado { background-color: #ef4444; color: #fff; }
+        .status-nao-aplicavel { background-color: #9ca3af; color: #1f2937; }
+        [x-cloak] { display: none !important; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body x-data="appData()" x-cloak>
+
+    <!-- Tela de Login -->
+    <div x-show="currentView === 'login'" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md mx-auto">
+            <div class="card text-center">
+                <h1 class="text-3xl font-bold text-golden-yellow mb-2">REIDI System</h1>
+                <p class="text-gray-400 mb-8">Acesso à plataforma de consultoria</p>
+                
+                <div class="mb-4">
+                    <label for="email" class="block text-left text-gray-300 mb-2">Email</label>
+                    <input type="email" id="email" class="input-field" placeholder="seuemail@exemplo.com">
+                </div>
+                
+                <p class="text-gray-400 my-4 text-sm">Um link de acesso será enviado para seu e-mail.</p>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button @click="loginAs('consultor')" class="btn-primary w-full">Entrar como Consultor</button>
+                    <button @click="loginAs('cliente')" class="btn-secondary w-full">Entrar como Cliente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel do Consultor -->
+    <div x-show="currentView === 'consultorDashboard'">
+        <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-golden-yellow">Painel do Consultor</h1>
+            <div>
+                <span class="mr-4">Olá, Consultor</span>
+                <button @click="logout()" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </header>
+        <main class="p-4 sm:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Clientes Cadastrados</h2>
+                <button @click="currentView = 'addClient'" class="btn-primary"><i class="fas fa-plus mr-2"></i> Novo Cliente</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Card do Cliente -->
+                <template x-for="client in clients" :key="client.id">
+                    <div class="card">
+                        <h3 class="text-lg font-bold text-golden-yellow" x-text="client.name"></h3>
+                        <p class="text-sm text-gray-400 mb-4" x-text="`CNPJ: ${client.cnpj}`"></p>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Projetos:</span>
+                                <span x-text="client.projects.length"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">Status Checklist:</span>
+                                <span class="status-badge" :class="getOverallStatusClass(client.projects[0].checklist)" x-text="getOverallStatus(client.projects[0].checklist)"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold">Status Formulário:</span>
+                                <span class="status-badge" :class="client.projects[0].form.submitted ? 'status-aprovado' : 'status-pendente'" x-text="client.projects[0].form.submitted ? 'Enviado' : 'Pendente'"></span>
+                            </div>
+                        </div>
+                        <button @click="viewClientProjects(client.id)" class="btn-secondary w-full mt-6">Abrir Painel do Cliente</button>
+                    </div>
+                </template>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Tela de Adicionar Cliente (Consultor) -->
+    <div x-show="currentView === 'addClient'">
+        <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-golden-yellow">Cadastrar Novo Cliente</h1>
+            <button @click="currentView = 'consultorDashboard'" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar</button>
+        </header>
+        <main class="p-4 sm:p-8 max-w-4xl mx-auto">
+            <div class="card">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="cnpj" class="block text-gray-300 mb-2">CNPJ</label>
+                        <div class="flex">
+                            <input type="text" id="cnpj" x-model="newClient.cnpj" @input="fetchCnpjData" class="input-field rounded-r-none" placeholder="00.000.000/0001-00">
+                            <button class="bg-golden-yellow text-black px-4 rounded-r-md hover:bg-yellow-400"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="razaoSocial" class="block text-gray-300 mb-2">Razão Social</label>
+                        <input type="text" id="razaoSocial" x-model="newClient.razaoSocial" class="input-field">
+                    </div>
+                    <div>
+                        <label for="logradouro" class="block text-gray-300 mb-2">Logradouro</label>
+                        <input type="text" id="logradouro" x-model="newClient.logradouro" class="input-field">
+                    </div>
+                    <div>
+                        <label for="complemento" class="block text-gray-300 mb-2">Complemento</label>
+                        <input type="text" id="complemento" x-model="newClient.complemento" class="input-field">
+                    </div>
+                    <div>
+                        <label for="bairro" class="block text-gray-300 mb-2">Bairro</label>
+                        <input type="text" id="bairro" x-model="newClient.bairro" class="input-field">
+                    </div>
+                    <div>
+                        <label for="cep" class="block text-gray-300 mb-2">CEP</label>
+                        <input type="text" id="cep" x-model="newClient.cep" class="input-field">
+                    </div>
+                    <div>
+                        <label for="municipio" class="block text-gray-300 mb-2">Município</label>
+                        <input type="text" id="municipio" x-model="newClient.municipio" class="input-field">
+                    </div>
+                    <div>
+                        <label for="uf" class="block text-gray-300 mb-2">UF</label>
+                        <input type="text" id="uf" x-model="newClient.uf" class="input-field">
+                    </div>
+                    <div>
+                        <label for="telefone" class="block text-gray-300 mb-2">Telefone</label>
+                        <input type="text" id="telefone" x-model="newClient.telefone" class="input-field">
+                    </div>
+                    <div>
+                        <label for="representante" class="block text-gray-300 mb-2">Representante Legal</label>
+                        <input type="text" id="representante" x-model="newClient.representante" class="input-field">
+                    </div>
+                    <div>
+                        <label for="emailContato" class="block text-gray-300 mb-2">E-mail para Contato</label>
+                        <input type="email" id="emailContato" x-model="newClient.email" class="input-field">
+                    </div>
+                    <div>
+                        <label for="whatsapp" class="block text-gray-300 mb-2">WhatsApp</label>
+                        <input type="text" id="whatsapp" x-model="newClient.whatsapp" class="input-field">
+                    </div>
+                    <div>
+                        <label for="numProjetos" class="block text-gray-300 mb-2">Quantidade de Projetos</label>
+                        <input type="number" id="numProjetos" x-model.number="newClient.numProjetos" class="input-field" min="1">
+                    </div>
+                </div>
+                <div class="mt-8 text-right">
+                    <button @click="addNewClient" class="btn-primary">Salvar Cliente</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Visão do Consultor - Painel do Cliente -->
+    <div x-show="currentView === 'consultorClientView'" x-if="selectedClient">
+        <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-golden-yellow" x-text="selectedClient.name"></h1>
+                <p class="text-sm text-gray-400" x-text="`ID: ${selectedClient.id}`"></p>
+            </div>
+            <button @click="currentView = 'consultorDashboard'; selectedClient = null" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar ao Painel</button>
+        </header>
+        <main class="p-4 sm:p-8">
+            <div class="mb-6">
+                <label for="project-selector-consultor" class="block text-gray-300 mb-2">Selecione o Projeto para Análise:</label>
+                <select id="project-selector-consultor" x-model="selectedProjectIndex" class="input-field max-w-sm">
+                    <template x-for="(project, index) in selectedClient.projects" :key="index">
+                        <option :value="index" x-text="project.name"></option>
+                    </template>
+                </select>
+            </div>
+
+            <div x-show="selectedProject" class="card">
+                <h2 class="text-xl font-semibold mb-4">Checklist de Documentos - <span class="text-golden-yellow" x-text="selectedProject.name"></span></h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="border-b-2 border-gray-500">
+                            <tr>
+                                <th class="p-2">Documento</th>
+                                <th class="p-2">Status</th>
+                                <th class="p-2">Arquivo</th>
+                                <th class="p-2">Ações</th>
+                                <th class="p-2">Observações (Cliente)</th>
+                                <th class="p-2">Observações (Internas)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(doc, index) in selectedProject.checklist" :key="index">
+                                <tr class="border-b border-gray-600">
+                                    <td class="p-2" x-text="doc.name"></td>
+                                    <td class="p-2">
+                                        <span class="status-badge" :class="getStatusClass(doc.status)" x-text="doc.status"></span>
+                                    </td>
+                                    <td class="p-2">
+                                        <a x-show="doc.file" href="#" @click.prevent="alert('Simulação de download do arquivo.')" class="text-blue-400 hover:underline" x-text="doc.file.name"></a>
+                                        <span x-show="!doc.file && doc.status !== 'Não Aplicável'" class="text-gray-500">Nenhum</span>
+                                        <span x-show="doc.status === 'Não Aplicável'" class="text-gray-400 italic">N/A</span>
+                                    </td>
+                                    <td class="p-2">
+                                        <div x-show="doc.status === 'Enviado'" class="flex gap-2">
+                                            <button @click="updateDocStatus(index, 'Aprovado')" class="text-green-500 hover:text-green-400"><i class="fas fa-check-circle"></i> Aprovar</button>
+                                            <button @click="updateDocStatus(index, 'Rejeitado')" class="text-red-500 hover:text-red-400"><i class="fas fa-times-circle"></i> Rejeitar</button>
+                                        </div>
+                                    </td>
+                                    <td class="p-2">
+                                        <textarea x-model="doc.clientObs" class="input-field text-sm" placeholder="Adicionar observação para o cliente..."></textarea>
+                                    </td>
+                                    <td class="p-2">
+                                        <textarea x-model="doc.internalObs" class="input-field text-sm" placeholder="Observação interna..."></textarea>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 text-right">
+                    <button @click="notify('Notificação Enviada', 'O cliente foi notificado sobre as alterações no checklist.')" class="btn-primary">Notificar Cliente sobre Alterações</button>
+                </div>
+            </div>
+            
+            <div x-show="selectedProject && selectedProject.form.submitted" class="card mt-8">
+                <h2 class="text-xl font-semibold mb-4">Formulário de Informações - <span class="text-golden-yellow" x-text="selectedProject.name"></span></h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div><strong class="text-golden-yellow">Razão Social:</strong> <span x-text="selectedProject.form.razaoSocial"></span></div>
+                        <div><strong class="text-golden-yellow">CNPJ:</strong> <span x-text="selectedProject.form.cnpj"></span></div>
+                        <div><strong class="text-golden-yellow">Representante Legal:</strong> <span x-text="selectedProject.form.representanteLegal"></span></div>
+                        <div><strong class="text-golden-yellow">Localização:</strong> <span x-text="`${selectedProject.form.municipio} - ${selectedProject.form.uf}`"></span></div>
+                        <div><strong class="text-golden-yellow">Potência Instalada:</strong> <span x-text="`${selectedProject.form.potenciaInstalada} kW`"></span></div>
+                        <div><strong class="text-golden-yellow">Fonte de Geração:</strong> <span x-text="selectedProject.form.fonteGeracao"></span></div>
+                    </div>
+                     <div class="mt-4 text-right">
+                        <button @click="currentView = 'consultorFormView'" class="btn-secondary">Ver e Editar Formulário Completo</button>
+                    </div>
+                </div>
+            </div>
+             <div x-show="selectedProject && !selectedProject.form.submitted" class="card mt-8">
+                 <h2 class="text-xl font-semibold mb-4">Formulário de Informações</h2>
+                 <p class="text-gray-400">Cliente ainda não submeteu o formulário.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Visão do Consultor - Edição do Formulário -->
+    <div x-show="currentView === 'consultorFormView'" x-if="selectedProject">
+        <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
+             <h1 class="text-2xl font-bold text-golden-yellow" x-text="`Editando Formulário: ${selectedProject.name}`"></h1>
+            <button @click="currentView = 'consultorClientView'" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar</button>
+        </header>
+        <main class="p-4 sm:p-8 max-w-5xl mx-auto">
+            <div class="card" x-data="{ form: selectedProject.form }">
+                <div class="space-y-6">
+                    <!-- DADOS DA PESSOA JURÍDICA -->
+                    <section>
+                        <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Dados da Pessoa Jurídica Titular do Projeto</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-gray-300 mb-1">Razão Social</label><input type="text" x-model="form.razaoSocial" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">CNPJ</label><input type="text" x-model="form.cnpj" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Nome do Representante Legal</label><input type="text" x-model="form.representanteLegal" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">CPF do Representante Legal</label><input type="text" x-model="form.cpfRepresentante" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Nome do Responsável Técnico</label><input type="text" x-model="form.responsavelTecnico" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">CPF do Responsável Técnico</label><input type="text" x-model="form.cpfTecnico" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Nome do Contador</label><input type="text" x-model="form.contador" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">CPF do Contador</label><input type="text" x-model="form.cpfContador" class="input-field"></div>
+                            <div class="md:col-span-2"><label class="block text-gray-300 mb-1">Pessoa Jurídica é titular de outros projetos com pedido de enquadramento no REIDI?</label>
+                                <select x-model="form.outrosProjetosREIDI" class="input-field">
+                                    <option value="Não">Não</option>
+                                    <option value="Sim">Sim</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- DADOS DO PROJETO -->
+                    <section>
+                        <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Dados do Projeto</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div><label class="block text-gray-300 mb-1">Município(s)</label><input type="text" x-model="form.municipio" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">UF(s)</label><input type="text" x-model="form.uf" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Nome da Distribuidora</label><input type="text" x-model="form.distribuidora" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Número da Unidade Consumidora (UC)</label><input type="text" x-model="form.uc" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Número do CUSD</label><input type="text" x-model="form.cusd" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Potência Instalada (kW)</label><input type="number" x-model.number="form.potenciaInstalada" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Tensão nominal de conexão (kV)</label><input type="number" x-model.number="form.tensaoConexao" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Potência nominal de conexão (kW)</label><input type="number" x-model.number="form.potenciaConexao" class="input-field"></div>
+                            <div><label class="block text-gray-300 mb-1">Data prevista de conclusão (dd/mm/aaaa)</label><input type="text" x-model="form.dataConclusao" class="input-field" placeholder="dd/mm/aaaa"></div>
+                            <div><label class="block text-gray-300 mb-1">Data prevista de conexão (dd/mm/aaaa)</label><input type="text" x-model="form.dataConexao" class="input-field" placeholder="dd/mm/aaaa"></div>
+                            <div class="lg:col-span-2"><label class="block text-gray-300 mb-1">Tipo de fonte de geração</label>
+                                <select x-model="form.fonteGeracao" class="input-field">
+                                    <option>Solar Fotovoltaica</option>
+                                    <option>Hídrica (CGH)</option>
+                                    <option>Eólica</option>
+                                    <option>Térmica</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3"><label class="block text-gray-300 mb-1">Descrição dos equipamentos e do projeto</label><textarea x-model="form.descricaoProjeto" class="input-field" rows="3"></textarea></div>
+                            <div><label class="block text-gray-300 mb-1">Nº da Licença Ambiental ou dispensa</label><input type="text" x-model="form.licencaAmbiental" class="input-field"></div>
+                            <div class="lg:col-span-2"><label class="block text-gray-300 mb-1">Especificação do setor do projeto</label><input type="text" x-model="form.setorProjeto" class="input-field"></div>
+                        </div>
+                    </section>
+
+                    <!-- ESTIMATIVAS DE INVESTIMENTOS -->
+                    <section>
+                        <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Estimativas de Investimentos (R$)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                            <div class="md:col-span-3"><label class="block text-gray-300 mb-1">Mês base das estimativas</label><input type="text" x-model="form.investimentos.mesBase" class="input-field" placeholder="mm/aaaa"></div>
+                            
+                            <div class="font-semibold text-gray-400">Categoria</div>
+                            <div class="font-semibold text-gray-400">Valores Com Incidência de PIS/COFINS</div>
+                            <div class="font-semibold text-gray-400">Valores Sem Incidência de PIS/COFINS</div>
+
+                            <div>Bens (máquinas, equipamentos, etc.)</div>
+                            <div><input type="number" x-model.number="form.investimentos.bens.com" class="input-field"></div>
+                            <div><input type="number" x-model.number="form.investimentos.bens.sem" class="input-field"></div>
+
+                            <div>Serviços de Terceiros</div>
+                            <div><input type="number" x-model.number="form.investimentos.servicos.com" class="input-field"></div>
+                            <div><input type="number" x-model.number="form.investimentos.servicos.sem" class="input-field"></div>
+
+                            <div>Outros</div>
+                            <div><input type="number" x-model.number="form.investimentos.outros.com" class="input-field"></div>
+                            <div><input type="number" x-model.number="form.investimentos.outros.sem" class="input-field"></div>
+
+                            <div class="font-bold text-golden-yellow">Total</div>
+                            <div class="font-bold text-lg" x-text="formatCurrency(form.investimentos.bens.com + form.investimentos.servicos.com + form.investimentos.outros.com)"></div>
+                            <div class="font-bold text-lg" x-text="formatCurrency(form.investimentos.bens.sem + form.investimentos.servicos.sem + form.investimentos.outros.sem)"></div>
+                        </div>
+                    </section>
+                </div>
+                
+                <div class="mt-8 text-right">
+                    <button @click="saveFormChanges()" class="btn-primary">Salvar Alterações e Notificar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Painel do Cliente -->
+    <div x-show="currentView === 'clientDashboard'" x-if="loggedInClient">
+        <header class="bg-dark-gray p-4 shadow-md flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-golden-yellow" x-text="loggedInClient.name"></h1>
+                <p class="text-sm text-gray-400" x-text="`ID: ${loggedInClient.id}`"></p>
+            </div>
+            <button @click="logout()" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-sign-out-alt"></i> Sair</button>
+        </header>
+        <main class="p-4 sm:p-8">
+            <!-- Etapa de Nomenclatura e Seleção de Projeto -->
+            <div x-show="clientStage === 'naming' || clientStage === 'confirmed'" class="card max-w-4xl mx-auto">
+                <h2 class="text-xl font-semibold mb-2">Bem-vindo!</h2>
+                
+                <!-- Tela para nomear projetos -->
+                <div x-show="clientStage === 'naming'">
+                    <p class="text-gray-300 mb-6">Você tem <strong x-text="loggedInClient.projects.length"></strong> projeto(s) contratado(s). Por favor, nomeie cada um deles para continuar.</p>
+                    <div class="space-y-4">
+                        <template x-for="(project, index) in loggedInClient.projects" :key="index">
+                            <div>
+                                <label :for="`projectName_${index}`" class="block text-gray-300 mb-2" x-text="`Nome do Projeto ${index + 1}`"></label>
+                                <input type="text" :id="`projectName_${index}`" x-model="project.name" class="input-field" placeholder="Ex: UFV Solar I">
+                            </div>
+                        </template>
+                    </div>
+                    <div class="mt-6 text-right">
+                        <button @click="confirmProjectNames()" class="btn-primary">Confirmar Nomes</button>
+                    </div>
+                </div>
+
+                <!-- Tela para selecionar projeto -->
+                <div x-show="clientStage === 'confirmed'">
+                     <p class="text-gray-300 mb-6">Selecione um projeto para visualizar ou atualizar as informações.</p>
+                     <div class="space-y-3">
+                        <template x-for="(project, index) in loggedInClient.projects" :key="index">
+                           <div class="bg-darker-gray p-4 rounded-lg flex justify-between items-center">
+                               <div class="flex items-center gap-4">
+                                   <template x-if="editingProjectIndex !== index">
+                                       <span class="font-semibold text-lg" x-text="project.name"></span>
+                                   </template>
+                                   <template x-if="editingProjectIndex === index">
+                                       <input type="text" x-model="project.name" @keydown.enter="saveProjectName(index)" @blur="saveProjectName(index)" class="input-field text-lg" x-init="$nextTick(() => $el.focus())">
+                                   </template>
+                                   <button @click="startEditingName(index)" class="text-gray-400 hover:text-golden-yellow">
+                                       <i class="fas fa-pencil-alt"></i>
+                                   </button>
+                               </div>
+                               <button @click="startWorkingOnProject(index)" class="btn-secondary py-2 px-4 text-sm">Acessar Projeto</button>
+                           </div>
+                        </template>
+                     </div>
+                </div>
+            </div>
+
+            <!-- Etapas de Trabalho (Checklist e Formulário) -->
+            <div x-show="clientStage === 'working'">
+                <div class="mb-4">
+                     <button @click="clientStage = 'confirmed'" class="text-gray-300 hover:text-golden-yellow"><i class="fas fa-arrow-left mr-2"></i> Voltar para Meus Projetos</button>
+                </div>
+                <div x-show="selectedProject">
+                    <!-- Tabs -->
+                    <div class="mb-6 border-b border-gray-600">
+                        <nav class="flex space-x-8">
+                            <button @click="clientTab = 'checklist'" :class="{'text-golden-yellow border-b-2 border-golden-yellow': clientTab === 'checklist', 'text-gray-400': clientTab !== 'checklist'}" class="py-2 px-1 font-semibold">
+                                1. Checklist de Documentos
+                            </button>
+                            <button @click="clientTab = 'form'" :disabled="!isChecklistComplete()" :class="{'text-golden-yellow border-b-2 border-golden-yellow': clientTab === 'form', 'text-gray-400': clientTab !== 'form', 'disabled:opacity-50 disabled:cursor-not-allowed': !isChecklistComplete()}" class="py-2 px-1 font-semibold">
+                                2. Formulário de Informações
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Conteúdo do Checklist -->
+                    <div x-show="clientTab === 'checklist'" class="card">
+                        <h2 class="text-xl font-semibold mb-4">Checklist de Documentos</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="border-b-2 border-gray-500">
+                                    <tr>
+                                        <th class="p-2">Documento</th>
+                                        <th class="p-2">Status</th>
+                                        <th class="p-2">Ação</th>
+                                        <th class="p-2">Observações do Consultor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(doc, index) in selectedProject.checklist" :key="index">
+                                        <tr class="border-b border-gray-600">
+                                            <td class="p-2" x-text="doc.name"></td>
+                                            <td class="p-2"><span class="status-badge" :class="getStatusClass(doc.status)" x-text="doc.status"></span></td>
+                                            <td class="p-2">
+                                                <div x-show="doc.status === 'Pendente' || doc.status === 'Rejeitado'" class="flex items-center gap-6">
+                                                    <label :for="`file_${index}`" class="cursor-pointer text-blue-400 hover:underline flex items-center">
+                                                        <input type="file" :id="`file_${index}`" @change="uploadFile($event, index)" class="hidden">
+                                                        <i class="fas fa-upload mr-1"></i>
+                                                        <span x-text="doc.status === 'Rejeitado' ? 'Reenviar' : 'Enviar'"></span>
+                                                    </label>
+                                                    <button @click="markAsNotApplicable(index)" class="cursor-pointer text-red-500 hover:underline flex items-center">
+                                                        <i class="fas fa-times-circle mr-1"></i>
+                                                        <span>Não se aplica</span>
+                                                    </button>
+                                                </div>
+                                                <div x-show="doc.status === 'Enviado' || doc.status === 'Aprovado'">
+                                                    <div x-show="doc.file" class="flex items-center gap-4">
+                                                        <span class="text-green-400" x-text="doc.file.name"></span>
+                                                        <div x-show="doc.status === 'Enviado'">
+                                                            <input type="file" :id="`replace_file_${index}`" @change="uploadFile($event, index)" class="hidden">
+                                                            <label :for="`replace_file_${index}`" class="cursor-pointer text-yellow-400 hover:underline text-sm">(Substituir)</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div x-show="doc.status === 'Não Aplicável'">
+                                                    <span class="text-gray-400 italic">Não Aplicável</span>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <span x-text="doc.clientObs || '-'"></span>
+                                                <p x-show="doc.status === 'Rejeitado'" class="text-red-400 text-sm" x-text="`Motivo: ${doc.clientObs}`"></p>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-8 text-right">
+                            <button @click="submitChecklist()" :disabled="!canSubmitChecklist()" class="btn-primary" :class="{'opacity-50 cursor-not-allowed': !canSubmitChecklist()}">
+                                Submeter Documentos e Ir para Formulário
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Conteúdo do Formulário -->
+                    <div x-show="clientTab === 'form'" class="max-w-5xl mx-auto">
+                        <div class="card" x-data="{ form: selectedProject.form }">
+                            <h2 class="text-xl font-semibold mb-4">Formulário de Informações</h2>
+                             <p class="text-gray-400 mb-6">As informações abaixo foram pré-preenchidas. Revise e altere se necessário.</p>
+
+                            <div class="space-y-6">
+                                <!-- DADOS DA PESSOA JURÍDICA -->
+                                <section>
+                                    <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Dados da Pessoa Jurídica Titular do Projeto</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label class="block text-gray-300 mb-1">Razão Social</label><input type="text" x-model="form.razaoSocial" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">CNPJ</label><input type="text" x-model="form.cnpj" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Nome do Representante Legal</label><input type="text" x-model="form.representanteLegal" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">CPF do Representante Legal</label><input type="text" x-model="form.cpfRepresentante" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Nome do Responsável Técnico</label><input type="text" x-model="form.responsavelTecnico" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">CPF do Responsável Técnico</label><input type="text" x-model="form.cpfTecnico" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Nome do Contador</label><input type="text" x-model="form.contador" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">CPF do Contador</label><input type="text" x-model="form.cpfContador" class="input-field"></div>
+                                        <div class="md:col-span-2"><label class="block text-gray-300 mb-1">Pessoa Jurídica é titular de outros projetos com pedido de enquadramento no REIDI?</label>
+                                            <select x-model="form.outrosProjetosREIDI" class="input-field">
+                                                <option value="Não">Não</option>
+                                                <option value="Sim">Sim</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- DADOS DO PROJETO -->
+                                <section>
+                                    <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Dados do Projeto</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div><label class="block text-gray-300 mb-1">Município(s)</label><input type="text" x-model="form.municipio" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">UF(s)</label><input type="text" x-model="form.uf" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Nome da Distribuidora</label><input type="text" x-model="form.distribuidora" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Número da Unidade Consumidora (UC)</label><input type="text" x-model="form.uc" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Número do CUSD</label><input type="text" x-model="form.cusd" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Potência Instalada (kW)</label><input type="number" x-model.number="form.potenciaInstalada" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Tensão nominal de conexão (kV)</label><input type="number" x-model.number="form.tensaoConexao" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Potência nominal de conexão (kW)</label><input type="number" x-model.number="form.potenciaConexao" class="input-field"></div>
+                                        <div><label class="block text-gray-300 mb-1">Data prevista de conclusão (dd/mm/aaaa)</label><input type="text" x-model="form.dataConclusao" class="input-field" placeholder="dd/mm/aaaa"></div>
+                                        <div><label class="block text-gray-300 mb-1">Data prevista de conexão (dd/mm/aaaa)</label><input type="text" x-model="form.dataConexao" class="input-field" placeholder="dd/mm/aaaa"></div>
+                                        <div class="lg:col-span-2"><label class="block text-gray-300 mb-1">Tipo de fonte de geração</label>
+                                            <select x-model="form.fonteGeracao" class="input-field">
+                                                <option>Solar Fotovoltaica</option>
+                                                <option>Hídrica (CGH)</option>
+                                                <option>Eólica</option>
+                                                <option>Térmica</option>
+                                            </select>
+                                        </div>
+                                        <div class="md:col-span-2 lg:col-span-3"><label class="block text-gray-300 mb-1">Descrição dos equipamentos e do projeto</label><textarea x-model="form.descricaoProjeto" class="input-field" rows="3"></textarea></div>
+                                        <div><label class="block text-gray-300 mb-1">Nº da Licença Ambiental ou dispensa</label><input type="text" x-model="form.licencaAmbiental" class="input-field"></div>
+                                        <div class="lg:col-span-2"><label class="block text-gray-300 mb-1">Especificação do setor do projeto</label><input type="text" x-model="form.setorProjeto" class="input-field"></div>
+                                    </div>
+                                </section>
+
+                                <!-- ESTIMATIVAS DE INVESTIMENTOS -->
+                                <section>
+                                    <h3 class="text-lg font-semibold text-golden-yellow border-b border-gray-600 pb-2 mb-4">Estimativas de Investimentos (R$)</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                        <div class="md:col-span-3"><label class="block text-gray-300 mb-1">Mês base das estimativas</label><input type="text" x-model="form.investimentos.mesBase" class="input-field" placeholder="mm/aaaa"></div>
+                                        
+                                        <div class="font-semibold text-gray-400">Categoria</div>
+                                        <div class="font-semibold text-gray-400">Valores Com Incidência de PIS/COFINS</div>
+                                        <div class="font-semibold text-gray-400">Valores Sem Incidência de PIS/COFINS</div>
+
+                                        <div>Bens (máquinas, equipamentos, etc.)</div>
+                                        <div><input type="number" x-model.number="form.investimentos.bens.com" class="input-field"></div>
+                                        <div><input type="number" x-model.number="form.investimentos.bens.sem" class="input-field"></div>
+
+                                        <div>Serviços de Terceiros</div>
+                                        <div><input type="number" x-model.number="form.investimentos.servicos.com" class="input-field"></div>
+                                        <div><input type="number" x-model.number="form.investimentos.servicos.sem" class="input-field"></div>
+
+                                        <div>Outros</div>
+                                        <div><input type="number" x-model.number="form.investimentos.outros.com" class="input-field"></div>
+                                        <div><input type="number" x-model.number="form.investimentos.outros.sem" class="input-field"></div>
+
+                                        <div class="font-bold text-golden-yellow">Total</div>
+                                        <div class="font-bold text-lg" x-text="formatCurrency(form.investimentos.bens.com + form.investimentos.servicos.com + form.investimentos.outros.com)"></div>
+                                        <div class="font-bold text-lg" x-text="formatCurrency(form.investimentos.bens.sem + form.investimentos.servicos.sem + form.investimentos.outros.sem)"></div>
+                                    </div>
+                                </section>
+                            </div>
+                            
+                            <div class="mt-8 text-right">
+                                 <button @click="submitForm()" class="btn-primary" :disabled="selectedProject.form.submitted">
+                                    <span x-show="!selectedProject.form.submitted">Submeter Informações</span>
+                                    <span x-show="selectedProject.form.submitted">Informações Submetidas</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Notificação -->
+    <div x-show="showNotification" @click.away="closeNotification()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-dark-gray rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+            <div class="text-golden-yellow text-4xl mb-4">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2" x-text="notificationTitle"></h3>
+            <p class="text-gray-300" x-text="notificationMessage"></p>
+            <button @click="closeNotification()" class="btn-primary mt-6 w-full">Fechar</button>
+        </div>
+    </div>
+
+
+<script>
+function appData() {
+    // Dados iniciais mockados
+    const initialClients = [
+        {
+            id: 'cli_001',
+            name: 'SPE UFV BEREN ITAPETINGA LTDA.',
+            cnpj: '60.390.673/0001-27',
+            address: 'Fazenda Astrolina, s/n, região rural do Municíio de Itapetinga, Estado da Bahia, CEP 45.700-000',
+            representante: 'Rodrigo Maia',
+            email: 'rodrigo@ledax.com',
+            whatsapp: '(61) 98989-9098',
+            projects: [
+                { name: 'UFV 1', checklist: createChecklist(), form: createForm('UFV 1') },
+                { name: 'UFV 2', checklist: createChecklist(), form: createForm('UFV 2') }
+            ]
+        }
+    ];
+
+    function createChecklist() {
+        const docNames = [
+            'Estatuto Social ou Contrato Social', 'Parecer de Acesso', 'Contrato CUSD', 
+            'Licença Ambiental ou dispensa', 'ID do Representante Legal', 'ID do Responsável Técnico', 
+            'ID do Contador', 'Procuração Específica', 'Outros documentos (contratos, etc.)'
+        ];
+        return docNames.map(name => ({
+            name: name,
+            status: 'Pendente', // Pendente, Enviado, Aprovado, Rejeitado, Não Aplicável
+            file: null,
+            clientObs: '',
+            internalObs: ''
+        }));
+    }
+
+    function createForm(projectName) {
+        // Simula dados extraídos dos documentos e do formulário
+        return {
+            submitted: false,
+            // Dados da Pessoa Jurídica
+            razaoSocial: 'SPE UFV BEREN ITAPETINGA LTDA.',
+            cnpj: '60.390.673/0001-27',
+            representanteLegal: 'Rodrigo Maia',
+            cpfRepresentante: '090.989.989-99',
+            responsavelTecnico: 'Carlos Silva',
+            cpfTecnico: '123.456.789-00',
+            contador: 'Ana Pereira',
+            cpfContador: '987.654.321-11',
+            outrosProjetosREIDI: 'Não',
+            // Dados do Projeto
+            municipio: 'Itapetinga',
+            uf: 'BA',
+            distribuidora: 'COELBA',
+            uc: '7001234567',
+            cusd: 'CUSD-987654321',
+            potenciaInstalada: 5000,
+            tensaoConexao: 13.8,
+            potenciaConexao: 4800,
+            dataConclusao: '31/12/2024',
+            dataConexao: '31/01/2025',
+            fonteGeracao: 'Solar Fotovoltaica',
+            descricaoProjeto: 'Implantação de usina fotovoltaica com 10.000 painéis de 500W e 50 inversores de 100kW.',
+            licencaAmbiental: 'INEMA 12345/2024',
+            setorProjeto: 'Infraestrutura em energia',
+            // Estimativas de Investimentos
+            investimentos: {
+                mesBase: '07/2024',
+                bens: { com: 15000000, sem: 13500000 },
+                servicos: { com: 2000000, sem: 1800000 },
+                outros: { com: 500000, sem: 450000 }
+            }
+        };
+    }
+
+    return {
+        // State
+        currentView: 'login', // login, consultorDashboard, addClient, consultorClientView, consultorFormView, clientDashboard
+        clientStage: 'naming', // naming, confirmed, working
+        editingProjectIndex: null,
+        clients: [],
+        loggedInClient: null,
+        selectedClient: null,
+        selectedProjectIndex: 0,
+        clientTab: 'checklist', // checklist, form
+        showNotification: false,
+        notificationTitle: '',
+        notificationMessage: '',
+        notificationCallback: null,
+        newClient: {
+            cnpj: '', razaoSocial: '', logradouro: '', complemento: '', bairro: '', cep: '', 
+            municipio: '', uf: '', telefone: '', representante: '', email: '', whatsapp: '', numProjetos: 1
+        },
+        
+        init() {
+            this.clients = JSON.parse(JSON.stringify(initialClients));
+        },
+
+        // Computed Properties
+        get selectedProject() {
+            const client = this.currentView.startsWith('consultor') ? this.selectedClient : this.loggedInClient;
+            if (client && client.projects && client.projects[this.selectedProjectIndex]) {
+                return client.projects[this.selectedProjectIndex];
+            }
+            return null;
+        },
+
+        // Methods
+        loginAs(role) {
+            if (role === 'consultor') {
+                this.currentView = 'consultorDashboard';
+            } else {
+                this.loggedInClient = this.clients.find(c => c.id === 'cli_001');
+                this.clientStage = this.loggedInClient.projects.every(p => p.name) ? 'confirmed' : 'naming';
+                this.selectedProjectIndex = 0;
+                this.currentView = 'clientDashboard';
+            }
+        },
+        logout() {
+            this.currentView = 'login';
+            this.loggedInClient = null;
+            this.selectedClient = null;
+            this.clientStage = 'naming';
+        },
+        fetchCnpjData() {
+            if (this.newClient.cnpj === '60.390.673/0001-27') {
+                this.newClient.razaoSocial = 'SPE UFV BEREN ITAPETINGA LTDA.';
+                this.newClient.logradouro = 'Fazenda Astrolina, s/n';
+                this.newClient.bairro = 'Zona Rural';
+                this.newClient.cep = '45.700-000';
+                this.newClient.municipio = 'Itapetinga';
+                this.newClient.uf = 'BA';
+                this.newClient.telefone = '(77) 3261-0000';
+            }
+        },
+        addNewClient() {
+            const client = {
+                id: `cli_${String(Date.now()).slice(-4)}`,
+                name: this.newClient.razaoSocial,
+                cnpj: this.newClient.cnpj,
+                address: `${this.newClient.logradouro}, ${this.newClient.bairro}, ${this.newClient.municipio} - ${this.newClient.uf}`,
+                representante: this.newClient.representante,
+                email: this.newClient.email,
+                whatsapp: this.newClient.whatsapp,
+                projects: Array.from({ length: this.newClient.numProjetos }, (_, i) => ({
+                    name: ``,
+                    checklist: createChecklist(),
+                    form: createForm(`Novo Projeto ${i+1}`)
+                }))
+            };
+            this.clients.push(client);
+            this.notify('Sucesso!', 'Novo cliente cadastrado na plataforma.');
+            this.currentView = 'consultorDashboard';
+            this.newClient = { cnpj: '', razaoSocial: '', logradouro: '', complemento: '', bairro: '', cep: '', municipio: '', uf: '', telefone: '', representante: '', email: '', whatsapp: '', numProjetos: 1 };
+        },
+        viewClientProjects(clientId) {
+            this.selectedClient = this.clients.find(c => c.id === clientId);
+            this.selectedProjectIndex = 0;
+            this.currentView = 'consultorClientView';
+        },
+        updateDocStatus(docIndex, status) {
+            if(this.selectedProject) {
+                this.selectedProject.checklist[docIndex].status = status;
+                this.notify('Status Atualizado', `O documento foi marcado como "${status}".`);
+            }
+        },
+        saveFormChanges() {
+            this.notify('Formulário Atualizado', 'As alterações foram salvas e o cliente será notificado.');
+            this.currentView = 'consultorClientView';
+        },
+        projectsNamed() {
+            if (!this.loggedInClient) return false;
+            return this.loggedInClient.projects.every(p => p.name.trim() !== '');
+        },
+        confirmProjectNames() {
+            if (this.projectsNamed()) {
+                this.clientStage = 'confirmed';
+            } else {
+                this.notify('Atenção', 'Por favor, nomeie todos os projetos antes de continuar.');
+            }
+        },
+        startWorkingOnProject(index) {
+            this.selectedProjectIndex = index;
+            this.clientTab = 'checklist';
+            this.clientStage = 'working';
+        },
+        startEditingName(index) {
+            this.editingProjectIndex = index;
+        },
+        saveProjectName(index) {
+            if(this.loggedInClient.projects[index].name.trim() === '') {
+                this.loggedInClient.projects[index].name = `Projeto ${index + 1}`;
+            }
+            this.editingProjectIndex = null;
+        },
+        uploadFile(event, docIndex) {
+            const file = event.target.files[0];
+            if (file && this.selectedProject) {
+                if (file.size > 100 * 1024 * 1024) { // 100MB
+                    this.notify('Erro', 'O arquivo excede o limite de 100MB.');
+                    return;
+                }
+                this.selectedProject.checklist[docIndex].file = { name: file.name, size: file.size };
+                this.selectedProject.checklist[docIndex].status = 'Enviado';
+            }
+        },
+        markAsNotApplicable(docIndex) {
+            if(this.selectedProject) {
+                this.selectedProject.checklist[docIndex].status = 'Não Aplicável';
+                this.selectedProject.checklist[docIndex].file = null;
+            }
+        },
+        canSubmitChecklist() {
+            if(!this.selectedProject) return false;
+            return this.selectedProject.checklist.every(doc => ['Enviado', 'Aprovado', 'Não Aplicável'].includes(doc.status));
+        },
+        submitChecklist() {
+            if (this.canSubmitChecklist()) {
+                this.clientTab = 'form';
+                this.notify('Sucesso!', 'Documentos submetidos. Agora preencha o formulário de informações.');
+                console.log("E-mail enviado para o consultor: Documentos submetidos pelo cliente " + this.loggedInClient.name);
+            }
+        },
+        isChecklistComplete() {
+            if(!this.selectedProject) return false;
+            return this.selectedProject.checklist.every(doc => ['Enviado', 'Aprovado', 'Não Aplicável'].includes(doc.status));
+        },
+        submitForm() {
+            if(this.selectedProject) {
+                this.selectedProject.form.submitted = true;
+                this.notify(
+                    'Análise Iniciada', 
+                    'Envio de documentos/informações encaminhados para análise. Obrigado pela confiança no SMAV.',
+                    () => {
+                        this.clientStage = 'confirmed';
+                    }
+                );
+            }
+        },
+        // Helper Functions
+        formatCurrency(value) {
+            if (isNaN(value) || !value) return 'R$ 0,00';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        },
+        getStatusClass(status) {
+            return {
+                'Pendente': 'status-pendente',
+                'Enviado': 'status-enviado',
+                'Aprovado': 'status-aprovado',
+                'Rejeitado': 'status-rejeitado',
+                'Não Aplicável': 'status-nao-aplicavel'
+            }[status];
+        },
+        getOverallStatus(checklist) {
+            if (!checklist || checklist.length === 0) return 'Pendente';
+            if (checklist.some(d => d.status === 'Rejeitado')) return 'Rejeitado';
+            if (checklist.every(d => ['Aprovado', 'Não Aplicável'].includes(d.status))) return 'Aprovado';
+            if (checklist.some(d => d.status === 'Enviado')) return 'Em Análise';
+            return 'Pendente';
+        },
+        getOverallStatusClass(checklist) {
+            const status = this.getOverallStatus(checklist);
+            return {
+                'Pendente': 'status-pendente',
+                'Em Análise': 'status-enviado',
+                'Aprovado': 'status-aprovado',
+                'Rejeitado': 'status-rejeitado'
+            }[status];
+        },
+        notify(title, message, callback = null) {
+            this.notificationTitle = title;
+            this.notificationMessage = message;
+            this.notificationCallback = callback;
+            this.showNotification = true;
+        },
+        closeNotification() {
+            this.showNotification = false;
+            if (this.notificationCallback) {
+                this.notificationCallback();
+                this.notificationCallback = null;
+            }
+        }
+    };
+}
+</script>
+
+</body>
+</html>
